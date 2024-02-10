@@ -307,7 +307,8 @@ Perform a simple linear regression with `diameter` as the covariate and `height`
 
 
 ```{R}
-... # Insert your code here
+model <- lm(height ~ diameter, data = df)
+summary(model)
 ```
 
 
@@ -317,10 +318,14 @@ Perform a simple linear regression with `diameter` as the covariate and `height`
 ###### 3.2 (10 points)
 
 Make a scatterplot of `height` vs `diameter` and plot the regression line in `color="red"`. You can use the base `plot()` function in R for this. Is the linear model an appropriate fit for this relationship? Explain. 
-
+Yes, both the intercept and the slope for diameter are statistically significant (p < 0.05), suggesting that there is a significant linear relationship between diameter and height.An R-squared value of 0.695 indicates that about 69.5% of the variance in height is explained by diameter. 
 
 ```{R}
-... # Insert your code here
+plot(df$diameter, df$height, main = "Scatterplot of Height vs Diameter",
+     xlab = "Diameter", ylab = "Height", pch = 19, col = rgb(0.2, 0.4, 0.6, 0.7))
+
+# Now add the regression line
+abline(model, col = "red")
 ```
 
 
@@ -347,7 +352,24 @@ new_diameters <- c(
 )
 
 
-... # Insert your code here. 
+# Create new df
+new_data <- data.frame(diameter = new_diameters)
+
+# predict heights
+predicted_heights <- predict(model, new_data)
+
+# Print predicted heights
+predicted_heights
+
+# Plot original data
+plot(df$diameter, df$height, main = "Scatterplot of Height vs Diameter with Predictions",
+     xlab = "Diameter", ylab = "Height", pch = 19, col = rgb(0.2, 0.4, 0.6, 0.7))
+
+# Add regression line
+abline(model, col = "red")
+
+# Plot new observations
+points(new_diameters, predicted_heights, pch = 19, col = "violet")
 ```
 
 
