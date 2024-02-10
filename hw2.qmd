@@ -35,6 +35,7 @@ library(ggplot2)
 library(dplyr)
 library(purrr)
 library(cowplot)
+library(tidyverse)
 ```
 
 
@@ -136,7 +137,7 @@ ggplot(df, aes(x = sex, y = diameter)) +
 
 Create a scatter plot of `length` and `diameter`, and modify the shape and color of the points based on the `sex` variable. Change the size of each point based on the `shell_wight` value for each observation. Are there any notable anomalies in the dataset?
 
-
+Females tend to have higher diameter and length than the others and all sexs follow a linear line.
 
 ```{R}
 ggplot(df, aes(x = length, y = diameter, color = sex, shape = sex, size = shell_weight)) +
@@ -157,8 +158,17 @@ ggplot(df, aes(x = length, y = diameter, color = sex, shape = sex, size = shell_
 For each `sex`, create separate scatter plots of `length` and `diameter`. For each plot, also add a **linear** trendline to illustrate the relationship between the variables. Use the `facet_wrap()` function in R for this, and ensure that the plots are vertically stacked **not** horizontally. You should end up with a plot that looks like this: [^footnote_plot_facet]
 
 
-```R
-... # Insert your code here
+```{R}
+ggplot(df, aes(x = length, y = diameter, color = sex)) +
+  geom_point() +  # Add points
+  geom_smooth(method = "lm", se = FALSE, color = "black") +  # Add linear trendline, se = FALSE removes the confidence interval shading
+  facet_wrap(~ sex, scales = "free", ncol = 1) +  # Stack plots vertically for each sex
+  labs(title = "Scatter Plots of Length vs. Diameter by Sex with Linear Trendline",
+       x = "Length",
+       y = "Diameter") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Hide the legend since sex is indicated by facet
+
 ```
 
 
@@ -183,8 +193,9 @@ More advanced analyses using `dplyr`, `purrrr` and `ggplot2`
 Filter the data to only include abalone with a length of at least $0.5$ meters. Group the data by `sex` and calculate the mean of each variable for each group. Create a bar plot to visualize the mean values for each variable by `sex`.
 
 
-```R
+```{R}
 df %>% ... # Insert your code here
+
 ```
 
 
@@ -205,8 +216,23 @@ Implement the following in a **single command**:
 3. Use the `geom_tile()` function to create a tile plot of `num_rings` vs `sex` with the color indicating of each tile indicating the `avg_weight` value. 
 
 
-```R
-df %>% ... # Insert your code here
+```{R}
+# Filter, group, and summarize the data
+df %>% 
+  filter(length >= 0.5) %>%
+  group_by(sex) %>%
+  summarise(across(everything(), mean, na.rm = TRUE))
+
+# Gather the data to long format for plotting
+df_long <- df %>%
+  pivot_longer(-sex, names_to = "variable", values_to = "mean_value")
+
+# Create a bar plot
+ggplot(df_long, aes(x = variable, y = mean_value, fill = sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Mean Values of Variables by Sex", x = "Variable", y = "Mean Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Rotate x-axis labels for readability
 ```
 
 
@@ -218,8 +244,12 @@ df %>% ... # Insert your code here
 Make a table of the pairwise correlations between all the numeric variables rounded to 2 decimal points. Your final answer should look like this [^footnote_table]
 
 
-```R
-df %>% ... # Insert your code here
+```{R}
+df %>%
+  select(where(is.numeric)) %>%  # Select only numeric columns
+  cor() %>%                      # Compute the correlation matrix
+  round(2)                       # Round the matrix to 2 decimal points
+
 ```
 
 
@@ -235,8 +265,25 @@ Use the `map2()` function from the `purrr` package to create a scatter plot for 
 :::
 
 
-```R
-... # Insert your code here
+```{R}
+# List of quantitative variable names excluding 'rings' and 'sex'
+quantitative_vars <- df %>% 
+  select(where(is.numeric)) %>% 
+  select(-rings) %>% 
+  names()
+
+# Create a list of plots
+plots <- map2(
+  quantitative_vars, 
+  rep(list(df$rings), length(quantitative_vars)), 
+  ~ ggplot(df, aes_string(x = .y, y = .x, color = 'sex')) + 
+    geom_point() + 
+    labs(x = 'Rings', y = .x) + 
+    theme_minimal()
+)
+
+# Combine the plots into a single grid
+plot_grid(plotlist = plots, ncol = 3)
 ```
 
 
@@ -259,7 +306,7 @@ Linear regression using `lm`
 Perform a simple linear regression with `diameter` as the covariate and `height` as the response. Interpret the model coefficients and their significance values. 
 
 
-```R
+```{R}
 ... # Insert your code here
 ```
 
@@ -272,7 +319,7 @@ Perform a simple linear regression with `diameter` as the covariate and `height`
 Make a scatterplot of `height` vs `diameter` and plot the regression line in `color="red"`. You can use the base `plot()` function in R for this. Is the linear model an appropriate fit for this relationship? Explain. 
 
 
-```R
+```{R}
 ... # Insert your code here
 ```
 
@@ -284,7 +331,7 @@ Make a scatterplot of `height` vs `diameter` and plot the regression line in `co
 
 Suppose we have collected observations for "new" abalones with `new_diameter` values given below. What is the expected value of their `height` based on your model above? Plot these new observations along with your predictions in your plot from earlier using `color="violet"`
 
-```R
+```{R}
 
 new_diameters <- c(
   0.15218946,
