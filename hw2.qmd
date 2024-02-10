@@ -1,6 +1,6 @@
 ---
 title: "Homework 2"
-author: "[Insert your name here]{style='background-color: yellow;'}"
+author: "[Ahmed Alzarooni]{style='background-color: yellow;'}"
 toc: true
 title-block-banner: true
 title-block-style: default
@@ -28,7 +28,7 @@ For this assignment, we will be using the [Abalone dataset](http://archive.ics.u
 
 We will be using the following libraries:
 
-```R
+```{r}
 library(readr)
 library(tidyr)
 library(ggplot2)
@@ -51,7 +51,7 @@ EDA using `readr`, `tidyr` and `ggplot2`
 
 Load the "Abalone" dataset as a tibble called `abalone` using the URL provided below. The `abalone_col_names` variable contains a vector of the column names for this dataset (to be consistent with the R naming pattern). Make sure you read the dataset with the provided column names. 
 
-```R
+```{r}
 library(readr)
 url <- "http://archive.ics.uci.edu/ml/machine-learning-databases/abalone/abalone.data"
 
@@ -67,7 +67,7 @@ abalone_col_names <- c(
   "rings"
 )
 
-abalone <- ... # Insert your code here
+abalone <- read_csv(url, col_names = abalone_col_names)
 ```
 
 ---
@@ -76,8 +76,12 @@ abalone <- ... # Insert your code here
 
 Remove missing values and `NA`s from the dataset and store the cleaned data in a tibble called `df`. How many rows were dropped?
 
-```R
-df <- ... # Insert your code here
+```{r}
+df <- drop_na(abalone)
+
+# Calculate the number of rows dropped
+rows_dropped <- nrow(abalone) - nrow(df)
+rows_dropped
 ```
 
 
@@ -89,8 +93,17 @@ df <- ... # Insert your code here
 
 Plot histograms of all the quantitative variables in a **single plot** [^footnote_facet_wrap]
 
-```R
-... # Insert your code here
+```{R}
+# Gather the quantitative variables into long format
+df_long <- df %>%
+  gather(key = "variable", value = "value", -sex) # Excluding the 'sex' column as it's categorical
+
+# Plot histograms of all quantitative variables in a single plot
+ggplot(df_long, aes(x = value)) +
+  geom_histogram(bins = 30, fill = "blue", color = "black") + # Adjust the number of bins as needed
+  facet_wrap(~ variable, scales = "free") +
+  theme_minimal() +
+  labs(title = "Histograms of Quantitative Variables", x = "Value", y = "Frequency")
 ```
 
 
@@ -100,12 +113,20 @@ Plot histograms of all the quantitative variables in a **single plot** [^footnot
 
 Create a boxplot of `length` for each `sex` and create a violin-plot of of `diameter` for each `sex`. Are there any notable differences in the physical appearences of abalones based on your analysis here?
 
-```R
-... # Insert your code for boxplot here
+Violin has a lower median than the box plot by about .1 
+
+```{R}
+ggplot(df, aes(x = sex, y = length)) +
+  geom_boxplot(fill = "blue", color = "black") +
+  labs(title = "Boxplot of Length by Sex", x = "Sex", y = "Length") +
+  theme_minimal()
 ```
 
-```R
-... # Insert your code for violinplot here
+```{R}
+ggplot(df, aes(x = sex, y = diameter)) +
+  geom_violin(fill = "green", color = "black") +
+  labs(title = "Violin Plot of Diameter by Sex", x = "Sex", y = "Diameter") +
+  theme_minimal()
 ```
 
 
@@ -117,8 +138,16 @@ Create a scatter plot of `length` and `diameter`, and modify the shape and color
 
 
 
-```R
-... # Insert your code here
+```{R}
+ggplot(df, aes(x = length, y = diameter, color = sex, shape = sex, size = shell_weight)) +
+  geom_point(alpha = 0.6) +  # Adjust the transparency of points with alpha
+  scale_size_continuous(range = c(1, 6)) +  # Adjust the size range for better visibility
+  labs(title = "Scatter Plot of Length vs. Diameter by Sex",
+       x = "Length",
+       y = "Diameter",
+       size = "Shell Weight") +
+  theme_minimal() +
+  theme(legend.position = "right")
 ```
 
 ---
